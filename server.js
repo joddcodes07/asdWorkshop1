@@ -1,14 +1,28 @@
 const express = require('express');
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
-
-const filePath = path.join(__dirname,"./db.json")
 
 const app = express();
 
-app.get("/products",(req,res)=>{
-    const prod = fs.readFile(filePath,'utf-8')
-    res.json(prod)
+const filePath = path.join(__dirname,"db.json")
+
+async function readfile() {
+    try{
+        let data = await fs.readFile(filePath,'utf-8');
+        return JSON.parse(data)
+    }catch (err){
+        console.log(err)
+    }
+}
+
+app.get("/products",async(req,res)=>{
+    try{
+        let products = await readfile();
+        console.log(products)
+        res.json(products);
+    }catch (err){
+        console.log(err)
+    }
 })
 
-app.listen(3000)
+app.listen(3001)
