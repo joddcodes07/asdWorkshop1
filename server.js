@@ -4,10 +4,10 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-
 const PORT = process.env.PORT || 3001;
-
 const filePath = path.join(__dirname,"db.json")
+
+const cache = {}
 
 async function readfile() {
     try{
@@ -25,9 +25,14 @@ async function readFileWithDelay(){
 
 app.get("/products",async(req,res)=>{
     try{
+        let key = req.url;
+        let value = cache[key];
+        if(value){
+            return res.json(value);
+        }
         let products = await readFileWithDelay();
-        console.log(products)
-        res.json(products);
+        cache[key]=products;
+        return res.json(products)
     }catch (err){
         console.log(err)
     }
