@@ -35,10 +35,14 @@ app.get("/products",async(req,res)=>{
 
 app.get("/products/:id",async(req,res)=>{
     try{
-        const {id} = req.params;
         let products = await readFileWithDelay();
-        console.log(products)
-        res.json(products);
+        const {id} = req.params;
+        let product = products.find((prod)=>prod.id == id);
+        if(product){
+            res.json(product);
+        }else{
+            res.status(404).json({message:"Product not found"})
+        }
     }catch (err){
         console.log(err)
     }
