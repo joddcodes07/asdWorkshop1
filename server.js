@@ -1,8 +1,11 @@
 const express = require('express');
 const fs = require('fs/promises');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
+
+const PORT = process.env.PORT || 3001;
 
 const filePath = path.join(__dirname,"db.json")
 
@@ -15,9 +18,14 @@ async function readfile() {
     }
 }
 
+async function readFileWithDelay(){
+    await new Promise((resolve,reject)=>{setTimeout(resolve,1500)})
+    return await readfile()
+}
+
 app.get("/products",async(req,res)=>{
     try{
-        let products = await readfile();
+        let products = await readFileWithDelay();
         console.log(products)
         res.json(products);
     }catch (err){
@@ -25,4 +33,17 @@ app.get("/products",async(req,res)=>{
     }
 })
 
-app.listen(3001)
+app.get("/products/:id",async(req,res)=>{
+    try{
+        const {id} = req.params;
+        let products = await readFileWithDelay();
+        console.log(products)
+        res.json(products);
+    }catch (err){
+        console.log(err)
+    }
+})
+
+app.listen(PORT,()=>{
+    console.log(`Server is running on port ${PORT}`);
+})
