@@ -1,13 +1,22 @@
 const cache = {};
+const TTL = 60 * 1000;
 
 const cacheMiddleware = (req, res, next) => {
     if (req.method !== 'GET') return next();
     
     const key = req.originalUrl;
+    const cachedEntry = cache[key];
     
-    if (cache[key]) {
-        res.setHeader('X-Cache', 'HIT');
-        return res.json(cache[key]);
+    if (cachedEntry) {
+        const now = Date.now();
+        const age = now - cachedEntry.timestamp;
+        
+        if (age < TTL) {
+            res.setHeader('X-Cache', 'HIT');
+            return res.json(cachedEntry.data);
+        } else {
+            delete cache[key];
+        }
     }
 
     res.setHeader('X-Cache', 'MISS');
@@ -15,11 +24,13 @@ const cacheMiddleware = (req, res, next) => {
     
     res.json = function (body) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-            cache[key] = body;
+            cache[key] = {
+                data: body,
+                timestamp: Date.now()
+            };
         }
         return originalJson.call(this, body);
     };
-
     next();
 };
 
