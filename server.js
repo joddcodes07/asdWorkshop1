@@ -38,20 +38,30 @@ app.get("/products",async(req,res)=>{
     }
 })
 
-app.get("/products/:id",async(req,res)=>{
-    try{
-        let products = await readFileWithDelay();
-        const {id} = req.params;
-        let product = products.find((prod)=>prod.id == id);
-        if(product){
-            res.json(product);
-        }else{
-            res.status(404).json({message:"Product not found"})
+app.get("/products/:id",async(req, res) => {
+    try {
+        let key = req.url; 
+        let value = cache[key];
+    
+        if (value) {
+            return res.json(value);
         }
-    }catch (err){
-        console.log(err)
+
+        let products = await readFileWithDelay();
+        const { id } = req.params;
+        let product = products.find((prod) => prod.id == id);
+
+        if (product) {
+            cache[key] = product;
+            return res.json(product);
+        } else {
+            return res.status(404).json({ message: "Product not found" });
+        }
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: "Internal server error" });
     }
-})
+});
 
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);
